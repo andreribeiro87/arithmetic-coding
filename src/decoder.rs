@@ -6,7 +6,7 @@ use bitstream_io::BitRead;
 
 use crate::{
     BitStore, Model,
-    common::{self, assert_precision_sufficient},
+    common::{self},
 };
 
 // this algorithm is derived from this article - https://marknelson.us/posts/2014/10/19/data-compression-with-arithmetic-coding.html

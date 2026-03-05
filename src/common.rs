@@ -2,6 +2,7 @@ use std::ops::Range;
 
 use arithmetic_coding_core::BitStore;
 
+#[cfg(debug_assertions)]
 use crate::Model;
 
 #[derive(Debug)]
@@ -48,6 +49,7 @@ where
     }
 }
 
+#[cfg(debug_assertions)]
 pub fn assert_precision_sufficient<M: Model>(max_denominator: M::B, precision: u32) {
     let frequency_bits = max_denominator.log2() + 1;
     assert!(
