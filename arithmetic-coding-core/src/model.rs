@@ -67,6 +67,13 @@ pub trait Model {
     /// The internal representation to use for storing integers
     type B: BitStore;
 
+    /// Optional compile-time hint for non-adaptive models whose denominator
+    /// never changes. Override to `Some(value)` in fixed-denominator models
+    /// so the encoder/decoder can elide the `denominator()` call and
+    /// potentially replace division with a shift when the value is a power
+    /// of two.
+    const FIXED_DENOMINATOR: Option<Self::B> = None;
+
     /// Given a symbol, return an interval representing the probability of that
     /// symbol occurring.
     ///
@@ -99,7 +106,7 @@ pub trait Model {
     /// to overflow or underflow.
     #[inline]
     fn denominator(&self) -> Self::B {
-        self.max_denominator()
+        Self::FIXED_DENOMINATOR.unwrap_or_else(|| self.max_denominator())
     }
 
     /// The maximum denominator used for probability ranges. See

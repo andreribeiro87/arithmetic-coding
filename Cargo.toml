@@ -7,7 +7,7 @@ edition = "2024"
 license = "MIT"
 keywords = ["compression", "encoding", "arithmetic-coding", "lossless"]
 categories = ["compression", "encoding", "parsing"]
-repository = "https://github.com/danieleades/arithmetic-coding"
+repository = "https://github.com/andreribeiro87/arithmetic-coding"
 
 [workspace.dependencies]
 thiserror = "2.0.18"
@@ -21,7 +21,7 @@ pedantic = "warn"
 [package]
 name = "arithmetic-coding"
 description = "fast and flexible arithmetic coding library"
-version = "0.5.0"
+version = "0.6.0"
 edition.workspace = true
 license.workspace = true
 keywords.workspace = true
@@ -30,7 +30,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-arithmetic-coding-core = { path = "./arithmetic-coding-core", version = "0.4.2" }
+arithmetic-coding-core = { path = "./arithmetic-coding-core", version = "0.4.3" }
 bitstream-io = "4.4.0"
 thiserror = { workspace = true }
 

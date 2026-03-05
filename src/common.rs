@@ -9,6 +9,9 @@ pub struct State<B: BitStore> {
     pub precision: u32,
     pub low: B,
     pub high: B,
+    pub half: B,
+    pub quarter: B,
+    pub three_quarter: B,
 }
 
 impl<B> State<B>
@@ -16,37 +19,32 @@ where
     B: BitStore,
 {
     pub fn new(precision: u32) -> Self {
-        let low = B::ZERO;
-        let high = (B::ONE << precision) - B::ONE;
+        let half = B::ONE << (precision - 1);
+        let quarter = B::ONE << (precision - 2);
+        let three_quarter = half + quarter;
 
         Self {
             precision,
-            low,
-            high,
+            low: B::ZERO,
+            high: (B::ONE << precision) - B::ONE,
+            half,
+            quarter,
+            three_quarter,
         }
-    }
-
-    #[inline]
-    pub fn half(&self) -> B {
-        B::ONE << (self.precision - 1)
-    }
-
-    #[inline]
-    pub fn quarter(&self) -> B {
-        B::ONE << (self.precision - 2)
-    }
-
-    #[inline]
-    pub fn three_quarter(&self) -> B {
-        self.half() + self.quarter()
     }
 
     #[inline]
     pub fn scale(&mut self, p: Range<B>, denominator: B) {
         let range = self.high - self.low + B::ONE;
 
-        self.high = self.low + (range * p.end) / denominator - B::ONE;
-        self.low += (range * p.start) / denominator;
+        if denominator.is_power_of_two() {
+            let shift = denominator.trailing_zeros();
+            self.high = self.low + ((range * p.end) >> shift) - B::ONE;
+            self.low += (range * p.start) >> shift;
+        } else {
+            self.high = self.low + (range * p.end) / denominator - B::ONE;
+            self.low += (range * p.start) / denominator;
+        }
     }
 }
 

@@ -25,21 +25,6 @@ where
     state: State<M::B, R>,
 }
 
-trait BitReadExt {
-    fn next_bit(&mut self) -> io::Result<Option<bool>>;
-}
-
-impl<R: BitRead> BitReadExt for R {
-    #[inline]
-    fn next_bit(&mut self) -> io::Result<Option<bool>> {
-        match self.read_bit() {
-            Ok(bit) => Ok(Some(bit)),
-            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(None),
-            Err(e) => Err(e),
-        }
-    }
-}
-
 impl<M, R> Decoder<M, R>
 where
     M: Model,
@@ -62,7 +47,12 @@ where
     ///
     /// If these constraints cannot be satisfied this method will panic in debug
     /// builds
-    pub fn new(model: M, input: R) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// This method can fail if the underlying [`BitRead`] cannot be read from
+    /// during initialisation.
+    pub fn new(model: M, input: R) -> io::Result<Self> {
         let frequency_bits = model.max_denominator().log2() + 1;
         let precision = M::B::BITS - frequency_bits;
 
@@ -82,9 +72,14 @@ where
     ///
     /// If these constraints cannot be satisfied this method will panic in debug
     /// builds
-    pub fn with_precision(model: M, input: R, precision: u32) -> Self {
-        let state = State::new(precision, input);
-        Self::with_state(state, model)
+    ///
+    /// # Errors
+    ///
+    /// This method can fail if the underlying [`BitRead`] cannot be read from
+    /// during initialisation.
+    pub fn with_precision(model: M, input: R, precision: u32) -> io::Result<Self> {
+        let state = State::new(precision, input)?;
+        Ok(Self::with_state(state, model))
     }
 
     /// Create a decoder from an existing [`State`] and [`Model`].
@@ -114,8 +109,6 @@ where
     /// This method can fail if the underlying [`BitRead`] cannot be read from.
     #[allow(clippy::missing_panics_doc)]
     pub fn decode(&mut self) -> io::Result<Option<M::Symbol>> {
-        self.state.initialise()?;
-
         let denominator = self.model.denominator();
         debug_assert!(
             denominator <= self.model.max_denominator(),
@@ -185,7 +178,9 @@ where
     state: common::State<B>,
     input: R,
     x: B,
-    uninitialised: bool,
+    read_buf: u64,
+    read_buf_len: u32,
+    eof: bool,
 }
 
 impl<B, R> State<B, R>
@@ -195,45 +190,95 @@ where
 {
     /// Create a new [`State`] from an input stream of bits with a given
     /// precision.
-    pub fn new(precision: u32, input: R) -> Self {
+    ///
+    /// Eagerly reads the initial `precision` bits from the input during
+    /// construction.
+    ///
+    /// # Errors
+    ///
+    /// This method can fail if the underlying [`BitRead`] cannot be read from.
+    pub fn new(precision: u32, input: R) -> io::Result<Self> {
         let state = common::State::new(precision);
-        let x = B::ZERO;
 
-        Self {
+        let mut s = Self {
             state,
             input,
-            x,
-            uninitialised: true,
+            x: B::ZERO,
+            read_buf: 0,
+            read_buf_len: 0,
+            eof: false,
+        };
+
+        s.fill()?;
+        Ok(s)
+    }
+
+    /// Pull a single bit from the local read buffer, refilling from the
+    /// underlying reader when empty. Returns `false` on EOF.
+    #[inline]
+    fn pull_bit(&mut self) -> io::Result<bool> {
+        if self.read_buf_len == 0 {
+            if self.eof {
+                return Ok(false);
+            }
+            self.refill()?;
+            if self.read_buf_len == 0 {
+                self.eof = true;
+                return Ok(false);
+            }
         }
+        self.read_buf_len -= 1;
+        Ok((self.read_buf >> self.read_buf_len) & 1 != 0)
+    }
+
+    /// Refill the local read buffer by reading whole bytes from the input.
+    fn refill(&mut self) -> io::Result<()> {
+        while self.read_buf_len <= 56 {
+            match self.input.read::<8, u8>() {
+                Ok(byte) => {
+                    self.read_buf = (self.read_buf << 8) | u64::from(byte);
+                    self.read_buf_len += 8;
+                }
+                Err(e) if e.kind() == io::ErrorKind::UnexpectedEof => {
+                    self.eof = true;
+                    break;
+                }
+                Err(e) => return Err(e),
+            }
+        }
+        Ok(())
     }
 
     #[inline]
     fn normalise(&mut self) -> io::Result<()> {
-        while self.state.high < self.state.half() || self.state.low >= self.state.half() {
-            if self.state.high < self.state.half() {
+        let half = self.state.half;
+        let quarter = self.state.quarter;
+        let three_quarter = self.state.three_quarter;
+
+        loop {
+            if self.state.high < half {
                 self.state.high = (self.state.high << 1) + B::ONE;
                 self.state.low <<= 1;
                 self.x <<= 1;
+            } else if self.state.low >= half {
+                self.state.low = (self.state.low - half) << 1;
+                self.state.high = ((self.state.high - half) << 1) + B::ONE;
+                self.x = (self.x - half) << 1;
             } else {
-                // self.low >= self.half()
-                self.state.low = (self.state.low - self.state.half()) << 1;
-                self.state.high = ((self.state.high - self.state.half()) << 1) + B::ONE;
-                self.x = (self.x - self.state.half()) << 1;
+                break;
             }
 
-            if self.input.next_bit()? == Some(true) {
+            if self.pull_bit()? {
                 self.x += B::ONE;
             }
         }
 
-        while self.state.low >= self.state.quarter()
-            && self.state.high < self.state.three_quarter()
-        {
-            self.state.low = (self.state.low - self.state.quarter()) << 1;
-            self.state.high = ((self.state.high - self.state.quarter()) << 1) + B::ONE;
-            self.x = (self.x - self.state.quarter()) << 1;
+        while self.state.low >= quarter && self.state.high < three_quarter {
+            self.state.low = (self.state.low - quarter) << 1;
+            self.state.high = ((self.state.high - quarter) << 1) + B::ONE;
+            self.x = (self.x - quarter) << 1;
 
-            if self.input.next_bit()? == Some(true) {
+            if self.pull_bit()? {
                 self.x += B::ONE;
             }
         }
@@ -256,18 +301,9 @@ where
     fn fill(&mut self) -> io::Result<()> {
         for _ in 0..self.state.precision {
             self.x <<= 1;
-            if self.input.next_bit()? == Some(true) {
+            if self.pull_bit()? {
                 self.x += B::ONE;
             }
-        }
-        Ok(())
-    }
-
-    #[inline]
-    fn initialise(&mut self) -> io::Result<()> {
-        if self.uninitialised {
-            self.fill()?;
-            self.uninitialised = false;
         }
         Ok(())
     }

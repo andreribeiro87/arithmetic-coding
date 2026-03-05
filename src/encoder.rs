@@ -292,24 +292,28 @@ where
 
     #[inline]
     fn normalise(&mut self) -> io::Result<()> {
-        while self.state.high < self.state.half() || self.state.low >= self.state.half() {
-            if self.state.high < self.state.half() {
+        let half = self.state.half;
+        let quarter = self.state.quarter;
+        let three_quarter = self.state.three_quarter;
+
+        loop {
+            if self.state.high < half {
                 self.emit(false)?;
                 self.state.high = (self.state.high << 1) + B::ONE;
                 self.state.low <<= 1;
-            } else {
+            } else if self.state.low >= half {
                 self.emit(true)?;
-                self.state.low = (self.state.low - self.state.half()) << 1;
-                self.state.high = ((self.state.high - self.state.half()) << 1) + B::ONE;
+                self.state.low = (self.state.low - half) << 1;
+                self.state.high = ((self.state.high - half) << 1) + B::ONE;
+            } else {
+                break;
             }
         }
 
-        while self.state.low >= self.state.quarter()
-            && self.state.high < self.state.three_quarter()
-        {
+        while self.state.low >= quarter && self.state.high < three_quarter {
             self.pending += 1;
-            self.state.low = (self.state.low - self.state.quarter()) << 1;
-            self.state.high = ((self.state.high - self.state.quarter()) << 1) + B::ONE;
+            self.state.low = (self.state.low - quarter) << 1;
+            self.state.high = ((self.state.high - quarter) << 1) + B::ONE;
         }
 
         Ok(())
@@ -339,7 +343,7 @@ where
     /// This method can fail if the output cannot be written to
     pub fn flush(mut self) -> io::Result<()> {
         self.pending += 1;
-        if self.state.low <= self.state.quarter() {
+        if self.state.low <= self.state.quarter {
             self.emit(false)?;
         } else {
             self.emit(true)?;

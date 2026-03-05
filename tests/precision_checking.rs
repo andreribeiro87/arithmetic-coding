@@ -97,7 +97,8 @@ fn decoder_new_doesnt_panic() {
     Decoder::new(
         one_shot::Wrapper::new(BigModel),
         BitReader::endian(Cursor::new(&[]), BigEndian),
-    );
+    )
+    .unwrap();
 }
 
 #[test]
@@ -107,14 +108,15 @@ fn decoder_with_precision_panics() {
         one_shot::Wrapper::new(BigModel),
         BitReader::endian(Cursor::new(&[]), BigEndian),
         PRECISION,
-    );
+    )
+    .unwrap();
 }
 
 #[test]
 #[should_panic(expected = "not enough bits of precision to prevent overflow/underflow")]
 fn decoder_with_state_panics() {
     Decoder::with_state(
-        decoder::State::new(PRECISION, BitReader::endian(Cursor::new(&[]), BigEndian)),
+        decoder::State::new(PRECISION, BitReader::endian(Cursor::new(&[]), BigEndian)).unwrap(),
         one_shot::Wrapper::new(BigModel),
     );
 }
@@ -126,7 +128,8 @@ fn decoder_chain_panics() {
         one_shot::Wrapper::new(SmallModel),
         BitReader::endian(Cursor::new(&[]), BigEndian),
         PRECISION,
-    );
+    )
+    .unwrap();
 
     decoder.chain(one_shot::Wrapper::new(BigModel));
 }

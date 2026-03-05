@@ -31,7 +31,7 @@ where
     M: Model,
 {
     let bitreader = BitReader::endian(buffer, BigEndian);
-    let mut decoder = Decoder::new(model, bitreader);
+    let mut decoder = Decoder::new(model, bitreader).unwrap();
 
     decoder.decode_all().map(Result::unwrap).collect()
 }

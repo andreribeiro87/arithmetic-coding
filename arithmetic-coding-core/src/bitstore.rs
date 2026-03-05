@@ -1,10 +1,11 @@
-use std::ops::{Add, AddAssign, Div, Mul, Shl, ShlAssign, Sub};
+use std::ops::{Add, AddAssign, Div, Mul, Shl, ShlAssign, Shr, Sub};
 
 /// A trait for a type that can be used for the internal integer representation
 /// of an encoder or decoder
 pub trait BitStore:
     Shl<u32, Output = Self>
     + ShlAssign<u32>
+    + Shr<u32, Output = Self>
     + Sub<Output = Self>
     + Add<Output = Self>
     + Mul<Output = Self>
@@ -25,6 +26,12 @@ pub trait BitStore:
 
     /// integer natural logarithm, rounded down
     fn log2(self) -> u32;
+
+    /// Returns `true` if the value is a power of two.
+    fn is_power_of_two(self) -> bool;
+
+    /// Returns the number of trailing zero bits.
+    fn trailing_zeros(self) -> u32;
 }
 
 macro_rules! impl_bitstore {
@@ -37,6 +44,16 @@ macro_rules! impl_bitstore {
             #[inline]
             fn log2(self) -> u32 {
                 Self::ilog2(self)
+            }
+
+            #[inline]
+            fn is_power_of_two(self) -> bool {
+                <$t>::is_power_of_two(self)
+            }
+
+            #[inline]
+            fn trailing_zeros(self) -> u32 {
+                <$t>::trailing_zeros(self)
             }
         }
     };
