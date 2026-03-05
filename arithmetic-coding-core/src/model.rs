@@ -97,6 +97,7 @@ pub trait Model {
     /// [`Model::max_denominator`], or it becomes possible for the
     /// [`Encoder`](crate::Encoder) and [`Decoder`](crate::Decoder) to panic due
     /// to overflow or underflow.
+    #[inline]
     fn denominator(&self) -> Self::B {
         self.max_denominator()
     }
@@ -120,5 +121,6 @@ pub trait Model {
     ///
     /// This method only needs to be implemented for 'adaptive' models. It's a
     /// no-op by default.
+    #[inline]
     fn update(&mut self, _symbol: Option<&Self::Symbol>) {}
 }

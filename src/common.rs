@@ -26,18 +26,22 @@ where
         }
     }
 
+    #[inline]
     pub fn half(&self) -> B {
         B::ONE << (self.precision - 1)
     }
 
+    #[inline]
     pub fn quarter(&self) -> B {
         B::ONE << (self.precision - 2)
     }
 
+    #[inline]
     pub fn three_quarter(&self) -> B {
         self.half() + self.quarter()
     }
 
+    #[inline]
     pub fn scale(&mut self, p: Range<B>, denominator: B) {
         let range = self.high - self.low + B::ONE;
 

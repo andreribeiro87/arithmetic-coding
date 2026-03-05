@@ -30,6 +30,7 @@ trait BitReadExt {
 }
 
 impl<R: BitRead> BitReadExt for R {
+    #[inline]
     fn next_bit(&mut self) -> io::Result<Option<bool>> {
         match self.read_bit() {
             Ok(bit) => Ok(Some(bit)),
@@ -206,6 +207,7 @@ where
         }
     }
 
+    #[inline]
     fn normalise(&mut self) -> io::Result<()> {
         while self.state.high < self.state.half() || self.state.low >= self.state.half() {
             if self.state.high < self.state.half() {
@@ -225,7 +227,7 @@ where
         }
 
         while self.state.low >= self.state.quarter()
-            && self.state.high < (self.state.three_quarter())
+            && self.state.high < self.state.three_quarter()
         {
             self.state.low = (self.state.low - self.state.quarter()) << 1;
             self.state.high = ((self.state.high - self.state.quarter()) << 1) + B::ONE;
@@ -239,11 +241,13 @@ where
         Ok(())
     }
 
+    #[inline]
     fn scale(&mut self, p: Range<B>, denominator: B) -> io::Result<()> {
         self.state.scale(p, denominator);
         self.normalise()
     }
 
+    #[inline]
     fn value(&self, denominator: B) -> B {
         let range = self.state.high - self.state.low + B::ONE;
         ((self.x - self.state.low + B::ONE) * denominator - B::ONE) / range
@@ -259,6 +263,7 @@ where
         Ok(())
     }
 
+    #[inline]
     fn initialise(&mut self) -> io::Result<()> {
         if self.uninitialised {
             self.fill()?;

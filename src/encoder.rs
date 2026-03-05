@@ -170,6 +170,15 @@ where
     state: common::State<B>,
     pending: u32,
     output: W,
+    /// Local bit-packing register. Bits are accumulated LSB-first:
+    /// the oldest pushed bit sits at position `write_buf_len - 1`,
+    /// the newest at position 0. This mirrors the behaviour of
+    /// `BitWrite::write_var` which writes the N least-significant bits
+    /// MSB-first, giving the correct bit order on the wire.
+    write_buf: u64,
+    /// Number of valid bits currently held in `write_buf` (always < 64;
+    /// the buffer is flushed to `output` the moment it reaches 64).
+    write_buf_len: u32,
 }
 
 impl<B, W> State<B, W>
@@ -182,21 +191,106 @@ where
     /// Normally this would be done automatically using the [`Encoder::new`]
     /// method.
     pub fn new(precision: u32, output: W) -> Self {
-        let state = common::State::new(precision);
-        let pending = 0;
-
         Self {
-            state,
-            pending,
+            state: common::State::new(precision),
+            pending: 0,
             output,
+            write_buf: 0,
+            write_buf_len: 0,
         }
     }
 
+    /// Write the full 64-bit buffer to the underlying writer and reset it.
+    #[inline]
+    fn flush_full_buf(&mut self) -> io::Result<()> {
+        debug_assert_eq!(self.write_buf_len, 64);
+        self.output.write::<64, u64>(self.write_buf)?;
+        self.write_buf = 0;
+        self.write_buf_len = 0;
+        Ok(())
+    }
+
+    /// Push a single bit into the local buffer.
+    ///
+    /// Flushes a full 64-bit word to `output` whenever the buffer fills up,
+    /// keeping `write_buf_len` strictly in `0..64` on return.
+    #[inline]
+    fn push_bit(&mut self, bit: bool) -> io::Result<()> {
+        self.write_buf = (self.write_buf << 1) | u64::from(bit);
+        self.write_buf_len += 1;
+        if self.write_buf_len == 64 {
+            self.flush_full_buf()?;
+        }
+        Ok(())
+    }
+
+    /// Push `count` identical copies of `bit` into the local buffer,
+    /// flushing whole 64-bit words to `output` along the way.
+    fn push_bits_repeated(&mut self, bit: bool, mut count: u32) -> io::Result<()> {
+        if count == 0 {
+            return Ok(());
+        }
+
+        // ── Step 1: fill any partial tail in the current buffer ────────────
+        if self.write_buf_len > 0 {
+            let space = 64 - self.write_buf_len;
+            let fill = count.min(space);
+            // write_buf_len >= 1  ⟹  space <= 63  ⟹  fill <= 63,
+            // so `1u64 << fill` never overflows.
+            let mask: u64 = if bit { (1u64 << fill) - 1 } else { 0 };
+            self.write_buf = (self.write_buf << fill) | mask;
+            self.write_buf_len += fill;
+            count -= fill;
+
+            if self.write_buf_len == 64 {
+                self.output.write::<64, u64>(self.write_buf)?;
+                self.write_buf = 0;
+                self.write_buf_len = 0;
+            } else {
+                // Buffer still has room; all bits have been consumed.
+                return Ok(());
+            }
+        }
+
+        // ── Step 2: buffer is empty — blast out full 64-bit words ──────────
+        let word: u64 = if bit { u64::MAX } else { 0 };
+        while count >= 64 {
+            self.output.write::<64, u64>(word)?;
+            count -= 64;
+        }
+
+        // ── Step 3: stash the remaining < 64 bits in the (empty) buffer ────
+        if count > 0 {
+            // count < 64 ⟹ `1u64 << count` is safe.
+            let mask: u64 = if bit { (1u64 << count) - 1 } else { 0 };
+            self.write_buf = mask;
+            self.write_buf_len = count;
+        }
+
+        Ok(())
+    }
+
+    /// Flush any bits that are still sitting in the local buffer out to
+    /// `output`.  After this call `write_buf_len` is 0.
+    fn drain_write_buf(&mut self) -> io::Result<()> {
+        if self.write_buf_len > 0 {
+            // write_buf_len is in 1..=63 here (the buffer is flushed the
+            // moment it reaches 64 inside push_bit / push_bits_repeated).
+            self.output
+                .write_var::<u64>(self.write_buf_len, self.write_buf)?;
+            self.write_buf = 0;
+            self.write_buf_len = 0;
+        }
+        Ok(())
+    }
+
+    #[inline]
     fn scale(&mut self, p: Range<B>, denominator: B) -> io::Result<()> {
         self.state.scale(p, denominator);
         self.normalise()
     }
 
+    #[inline]
     fn normalise(&mut self) -> io::Result<()> {
         while self.state.high < self.state.half() || self.state.low >= self.state.half() {
             if self.state.high < self.state.half() {
@@ -211,7 +305,7 @@ where
         }
 
         while self.state.low >= self.state.quarter()
-            && self.state.high < (self.state.three_quarter())
+            && self.state.high < self.state.three_quarter()
         {
             self.pending += 1;
             self.state.low = (self.state.low - self.state.quarter()) << 1;
@@ -221,12 +315,18 @@ where
         Ok(())
     }
 
+    /// Emit a resolved bit followed by all accumulated straddle bits.
+    ///
+    /// All output goes through the local u64 buffer rather than directly
+    /// to `self.output`, minimising the number of `BitWrite` calls.
+    #[inline]
     fn emit(&mut self, bit: bool) -> io::Result<()> {
-        self.output.write_bit(bit)?;
-        for _ in 0..self.pending {
-            self.output.write_bit(!bit)?;
+        self.push_bit(bit)?;
+        let n = self.pending;
+        if n > 0 {
+            self.push_bits_repeated(!bit, n)?;
+            self.pending = 0;
         }
-        self.pending = 0;
         Ok(())
     }
 
@@ -244,7 +344,7 @@ where
         } else {
             self.emit(true)?;
         }
-
+        self.drain_write_buf()?;
         Ok(())
     }
 }

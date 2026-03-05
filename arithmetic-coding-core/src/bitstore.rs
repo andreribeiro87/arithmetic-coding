@@ -34,6 +34,7 @@ macro_rules! impl_bitstore {
             const ONE: Self = 1;
             const ZERO: Self = 0;
 
+            #[inline]
             fn log2(self) -> u32 {
                 Self::ilog2(self)
             }
