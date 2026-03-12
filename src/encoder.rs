@@ -8,6 +8,8 @@ use crate::{
     BitStore, Error, Model,
     common::{self},
 };
+#[cfg(debug_assertions)]
+use crate::common::assert_precision_sufficient;
 
 // this algorithm is derived from this article - https://marknelson.us/posts/2014/10/19/data-compression-with-arithmetic-coding.html
 
