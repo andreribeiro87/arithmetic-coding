@@ -42,19 +42,19 @@ impl Model for FenwickModel {
     type Symbol = usize;
     type ValueError = ValueError;
 
-    fn probability(&self, symbol: Option<&usize>) -> Result<std::ops::Range<u64>, ValueError> {
+    fn probability(&mut self, symbol: Option<&usize>) -> Result<std::ops::Range<u64>, ValueError> {
         Ok(self.context().range(symbol.copied()))
     }
 
-    fn denominator(&self) -> u64 {
+    fn denominator(&mut self) -> u64 {
         self.context().total
     }
 
-    fn max_denominator(&self) -> u64 {
+    fn max_denominator(&mut self) -> u64 {
         self.max_denominator
     }
 
-    fn symbol(&self, value: u64) -> Option<usize> {
+    fn symbol(&mut self, value: u64) -> Option<usize> {
         self.context().symbol(value)
     }
 

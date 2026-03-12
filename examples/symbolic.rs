@@ -19,7 +19,7 @@ impl Model for MyModel {
     type Symbol = Symbol;
     type ValueError = Infallible;
 
-    fn probability(&self, symbol: Option<&Self::Symbol>) -> Result<Range<u32>, Infallible> {
+    fn probability(&mut self, symbol: Option<&Self::Symbol>) -> Result<Range<u32>, Infallible> {
         Ok(match symbol {
             None => 0..1,
             Some(&Symbol::A) => 1..2,
@@ -28,7 +28,7 @@ impl Model for MyModel {
         })
     }
 
-    fn symbol(&self, value: u32) -> Option<Self::Symbol> {
+    fn symbol(&mut self, value: u32) -> Option<Self::Symbol> {
         match value {
             0..1 => None,
             1..2 => Some(Symbol::A),
@@ -38,7 +38,7 @@ impl Model for MyModel {
         }
     }
 
-    fn max_denominator(&self) -> u32 {
+    fn max_denominator(&mut self) -> u32 {
         4
     }
 }

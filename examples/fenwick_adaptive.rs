@@ -38,23 +38,23 @@ impl Model for StringModel {
     type ValueError = ValueError;
 
     fn probability(
-        &self,
+        &mut self,
         symbol: Option<&Self::Symbol>,
     ) -> Result<Range<Self::B>, Self::ValueError> {
         let fenwick_symbol = symbol.map(|c| self.alphabet.iter().position(|x| x == c).unwrap());
         self.fenwick_model.probability(fenwick_symbol.as_ref())
     }
 
-    fn symbol(&self, value: Self::B) -> Option<Self::Symbol> {
+    fn symbol(&mut self, value: Self::B) -> Option<Self::Symbol> {
         let index = self.fenwick_model.symbol(value)?;
         self.alphabet.get(index).copied()
     }
 
-    fn max_denominator(&self) -> Self::B {
+    fn max_denominator(&mut self) -> Self::B {
         self.fenwick_model.max_denominator()
     }
 
-    fn denominator(&self) -> Self::B {
+    fn denominator(&mut self) -> Self::B {
         self.fenwick_model.denominator()
     }
 

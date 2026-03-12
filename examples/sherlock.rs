@@ -29,7 +29,7 @@ impl Model for StringModel {
     type ValueError = Error;
 
     #[allow(clippy::range_plus_one)]
-    fn probability(&self, symbol: Option<&Self::Symbol>) -> Result<Range<usize>, Error> {
+    fn probability(&mut self, symbol: Option<&Self::Symbol>) -> Result<Range<usize>, Error> {
         symbol.map_or_else(
             || {
                 let alphabet_length = self.alphabet.len();
@@ -44,11 +44,11 @@ impl Model for StringModel {
         )
     }
 
-    fn symbol(&self, value: usize) -> Option<Self::Symbol> {
+    fn symbol(&mut self, value: usize) -> Option<Self::Symbol> {
         self.alphabet.get(value).copied()
     }
 
-    fn max_denominator(&self) -> usize {
+    fn max_denominator(&mut self) -> usize {
         self.alphabet.len() + 1
     }
 }

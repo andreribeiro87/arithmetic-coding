@@ -19,7 +19,7 @@ mod integer {
         type Symbol = u8;
         type ValueError = Error;
 
-        fn probability(&self, symbol: Option<&Self::Symbol>) -> Result<Range<u32>, Error> {
+        fn probability(&mut self, symbol: Option<&Self::Symbol>) -> Result<Range<u32>, Error> {
             match symbol {
                 None => Ok(0..1),
                 Some(&1) => Ok(1..2),
@@ -29,7 +29,7 @@ mod integer {
             }
         }
 
-        fn symbol(&self, value: u32) -> Option<Self::Symbol> {
+        fn symbol(&mut self, value: u32) -> Option<Self::Symbol> {
             match value {
                 0..1 => None,
                 1..2 => Some(1),
@@ -39,7 +39,7 @@ mod integer {
             }
         }
 
-        fn max_denominator(&self) -> u32 {
+        fn max_denominator(&mut self) -> u32 {
             4
         }
     }
@@ -62,7 +62,7 @@ mod symbolic {
         type Symbol = Symbol;
         type ValueError = Infallible;
 
-        fn probability(&self, symbol: Option<&Self::Symbol>) -> Result<Range<u32>, Infallible> {
+        fn probability(&mut self, symbol: Option<&Self::Symbol>) -> Result<Range<u32>, Infallible> {
             Ok(match symbol {
                 None => 0..1,
                 Some(&Symbol::A) => 1..2,
@@ -71,7 +71,7 @@ mod symbolic {
             })
         }
 
-        fn symbol(&self, value: u32) -> Option<Self::Symbol> {
+        fn symbol(&mut self, value: u32) -> Option<Self::Symbol> {
             match value {
                 0..1 => None,
                 1..2 => Some(Symbol::A),
@@ -81,7 +81,7 @@ mod symbolic {
             }
         }
 
-        fn max_denominator(&self) -> u32 {
+        fn max_denominator(&mut self) -> u32 {
             4
         }
     }

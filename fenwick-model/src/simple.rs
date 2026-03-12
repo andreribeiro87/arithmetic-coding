@@ -52,7 +52,7 @@ impl Model for FenwickModel {
     type ValueError = ValueError;
 
     fn probability(
-        &self,
+        &mut self,
         symbol: Option<&Self::Symbol>,
     ) -> Result<std::ops::Range<Self::B>, Self::ValueError> {
         match symbol {
@@ -62,15 +62,15 @@ impl Model for FenwickModel {
         }
     }
 
-    fn max_denominator(&self) -> Self::B {
+    fn max_denominator(&mut self) -> Self::B {
         self.max_denominator
     }
 
-    fn symbol(&self, value: Self::B) -> Option<Self::Symbol> {
+    fn symbol(&mut self, value: Self::B) -> Option<Self::Symbol> {
         self.weights.symbol(value)
     }
 
-    fn denominator(&self) -> Self::B {
+    fn denominator(&mut self) -> Self::B {
         self.weights.total()
     }
 

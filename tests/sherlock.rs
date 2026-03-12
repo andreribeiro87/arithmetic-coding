@@ -20,7 +20,7 @@ impl Model for StringModel {
     type ValueError = Error;
 
     #[allow(clippy::range_plus_one)]
-    fn probability(&self, symbol: Option<&Self::Symbol>) -> Result<Range<Self::B>, Error> {
+    fn probability(&mut self, symbol: Option<&Self::Symbol>) -> Result<Range<Self::B>, Error> {
         symbol.map_or_else(
             || Ok(ALPHABET.len()..(ALPHABET.len() + 1)),
             |char| {
@@ -33,11 +33,11 @@ impl Model for StringModel {
         )
     }
 
-    fn symbol(&self, value: Self::B) -> Option<Self::Symbol> {
+    fn symbol(&mut self, value: Self::B) -> Option<Self::Symbol> {
         ALPHABET.chars().nth(value)
     }
 
-    fn max_denominator(&self) -> Self::B {
+    fn max_denominator(&mut self) -> Self::B {
         ALPHABET.len() + 1
     }
 }

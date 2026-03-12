@@ -4,12 +4,12 @@ use std::{io, ops::Range};
 
 use bitstream_io::BitRead;
 
+#[cfg(debug_assertions)]
+use crate::common::assert_precision_sufficient;
 use crate::{
     BitStore, Model,
     common::{self},
 };
-#[cfg(debug_assertions)]
-use crate::common::assert_precision_sufficient;
 
 // this algorithm is derived from this article - https://marknelson.us/posts/2014/10/19/data-compression-with-arithmetic-coding.html
 
@@ -54,7 +54,7 @@ where
     ///
     /// This method can fail if the underlying [`BitRead`] cannot be read from
     /// during initialisation.
-    pub fn new(model: M, input: R) -> io::Result<Self> {
+    pub fn new(mut model: M, input: R) -> io::Result<Self> {
         let frequency_bits = model.max_denominator().log2() + 1;
         let precision = M::B::BITS - frequency_bits;
 
@@ -88,7 +88,7 @@ where
     ///
     /// This is useful for manually chaining a shared buffer through multiple
     /// decoders.
-    pub fn with_state(state: State<M::B, R>, model: M) -> Self {
+    pub fn with_state(state: State<M::B, R>, mut model: M) -> Self {
         #[cfg(debug_assertions)]
         assert_precision_sufficient::<M>(model.max_denominator(), state.state.precision);
 

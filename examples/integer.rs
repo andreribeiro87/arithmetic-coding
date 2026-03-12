@@ -26,7 +26,7 @@ impl Model for MyModel {
     /// Each symbol (plus a 'stop' symbol) is assigned a unique span of the
     /// interval from 0-4. In this case each span has equal probability, so
     /// is the same size.
-    fn probability(&self, symbol: Option<&Self::Symbol>) -> Result<Range<u32>, Error> {
+    fn probability(&mut self, symbol: Option<&Self::Symbol>) -> Result<Range<u32>, Error> {
         match symbol {
             None => Ok(0..1),
             Some(&1) => Ok(1..2),
@@ -37,7 +37,7 @@ impl Model for MyModel {
     }
 
     /// For decoding, for each possible value, a symbol is returned.
-    fn symbol(&self, value: u32) -> Option<Self::Symbol> {
+    fn symbol(&mut self, value: u32) -> Option<Self::Symbol> {
         match value {
             0..1 => None,
             1..2 => Some(1),
@@ -53,7 +53,7 @@ impl Model for MyModel {
     /// for each symbol, but must never exceed `max_denominator`.
     /// For non-adaptive models, this value is the same as `max_denominator`
     /// (and this is the default value of the trait method).
-    fn max_denominator(&self) -> u32 {
+    fn max_denominator(&mut self) -> u32 {
         4
     }
 }

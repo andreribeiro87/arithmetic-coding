@@ -33,7 +33,7 @@ pub mod one_shot;
 ///     type Symbol = Symbol;
 ///     type ValueError = Infallible;
 ///
-///     fn probability(&self, symbol: Option<&Self::Symbol>) -> Result<Range<u32>, Infallible> {
+///     fn probability(&mut self, symbol: Option<&Self::Symbol>) -> Result<Range<u32>, Infallible> {
 ///         Ok(match symbol {
 ///             None => 0..1,
 ///             Some(&Symbol::A) => 1..2,
@@ -42,7 +42,7 @@ pub mod one_shot;
 ///         })
 ///     }
 ///
-///     fn symbol(&self, value: Self::B) -> Option<Self::Symbol> {
+///     fn symbol(&mut self, value: Self::B) -> Option<Self::Symbol> {
 ///         match value {
 ///             0..1 => None,
 ///             1..2 => Some(Symbol::A),
@@ -52,7 +52,7 @@ pub mod one_shot;
 ///         }
 ///     }
 ///
-///     fn max_denominator(&self) -> u32 {
+///     fn max_denominator(&mut self) -> u32 {
 ///         4
 ///     }
 /// }
@@ -91,7 +91,7 @@ pub trait Model {
     ///
     /// This returns a custom error if the given symbol is not valid
     fn probability(
-        &self,
+        &mut self,
         symbol: Option<&Self::Symbol>,
     ) -> Result<Range<Self::B>, Self::ValueError>;
 
@@ -105,7 +105,7 @@ pub trait Model {
     /// [`Encoder`](crate::Encoder) and [`Decoder`](crate::Decoder) to panic due
     /// to overflow or underflow.
     #[inline]
-    fn denominator(&self) -> Self::B {
+    fn denominator(&mut self) -> Self::B {
         Self::FIXED_DENOMINATOR.unwrap_or_else(|| self.max_denominator())
     }
 
@@ -115,14 +115,14 @@ pub trait Model {
     /// This value is used to calculate an appropriate precision for the
     /// encoding, therefore this value must not change, and
     /// [`Model::denominator`] must never exceed it.
-    fn max_denominator(&self) -> Self::B;
+    fn max_denominator(&mut self) -> Self::B;
 
     /// Given a value, return the symbol whose probability range it falls in.
     ///
     /// `None` indicates `EOF`
     ///
     /// This is the inverse of the [`Model::probability`] method
-    fn symbol(&self, value: Self::B) -> Option<Self::Symbol>;
+    fn symbol(&mut self, value: Self::B) -> Option<Self::Symbol>;
 
     /// Update the current state of the model with the latest symbol.
     ///

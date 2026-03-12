@@ -163,7 +163,7 @@ where
     type ValueError = Error<M::ValueError>;
 
     fn probability(
-        &self,
+        &mut self,
         symbol: Option<&Self::Symbol>,
     ) -> Result<Range<Self::B>, Self::ValueError> {
         if self.remaining > 0 {
@@ -182,11 +182,11 @@ where
         }
     }
 
-    fn max_denominator(&self) -> Self::B {
+    fn max_denominator(&mut self) -> Self::B {
         self.model.max_denominator()
     }
 
-    fn symbol(&self, value: Self::B) -> Option<Self::Symbol> {
+    fn symbol(&mut self, value: Self::B) -> Option<Self::Symbol> {
         if self.remaining > 0 {
             Some(self.model.symbol(value))
         } else {
@@ -194,7 +194,7 @@ where
         }
     }
 
-    fn denominator(&self) -> Self::B {
+    fn denominator(&mut self) -> Self::B {
         self.model.denominator()
     }
 
