@@ -118,7 +118,7 @@ where
             "denominator is greater than maximum!"
         );
         let value = self.state.value(denominator);
-        let symbol = self.model.symbol(value);
+        let symbol = self.model.symbol(value, self.idx_counter);
 
         let p = self
             .model

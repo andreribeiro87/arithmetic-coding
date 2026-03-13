@@ -119,7 +119,7 @@ pub trait Model {
     /// `None` indicates `EOF`
     ///
     /// This is the inverse of the [`Model::probability`] method
-    fn symbol(&mut self, value: Self::B) -> Option<Self::Symbol>;
+    fn symbol(&mut self, value: Self::B, index: u32) -> Option<Self::Symbol>;
 
     /// Update the current state of the model with the latest symbol.
     ///
