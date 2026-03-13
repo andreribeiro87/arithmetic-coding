@@ -173,7 +173,7 @@ where
     }
 
     /// Return the alphabet additions of the model.
-    pub fn alphabet_additions(&mut self) -> HashMap<M::Symbol, usize> {
+    pub fn alphabet_additions(&mut self) -> HashMap< usize, M::Symbol> {
         self.model.alphabet_additions()
     }
 }

@@ -135,5 +135,5 @@ pub trait Model {
     fn add_symbol_to_alphabet(&mut self, symbol: Self::Symbol, index: usize);
 
     /// Return the alphabet additions of the model.
-    fn alphabet_additions(&mut self) -> HashMap<Self::Symbol, usize>;
+    fn alphabet_additions(&mut self) -> HashMap< usize, Self::Symbol>;
 }
