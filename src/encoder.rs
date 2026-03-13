@@ -100,7 +100,7 @@ where
         for symbol in symbols {
             self.encode(Some(&symbol))?;
         }
-        self.encode(None)?;
+        // self.encode(None)?;
         self.flush()?;
         Ok(())
     }
