@@ -132,5 +132,5 @@ pub trait Model {
     fn alphabet(&mut self) -> Vec<Self::Symbol>;
 
     /// Add a symbol to the alphabet of the model.
-    fn add_symbol_to_alphabet(&mut self, symbol: Self::Symbol);
+    fn add_symbol_to_alphabet(&mut self, symbol: Self::Symbol, index: usize);
 }
