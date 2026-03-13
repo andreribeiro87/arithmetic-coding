@@ -1,6 +1,6 @@
-use std::{error::Error, ops::Range};
-
 use crate::BitStore;
+use std::collections::HashMap;
+use std::{error::Error, ops::Range};
 
 /// A [`Model`] is used to calculate the probability of a given symbol occuring
 /// in a sequence. The [`Model`] is used both for encoding and decoding.
@@ -133,4 +133,7 @@ pub trait Model {
 
     /// Add a symbol to the alphabet of the model.
     fn add_symbol_to_alphabet(&mut self, symbol: Self::Symbol, index: usize);
+
+    /// Return the alphabet additions of the model.
+    fn alphabet_additions(&mut self) -> HashMap<Self::Symbol, usize>;
 }

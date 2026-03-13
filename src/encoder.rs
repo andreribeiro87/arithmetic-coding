@@ -1,8 +1,8 @@
 //! The [`Encoder`] half of the arithmetic coding library.
 
-use std::{io, ops::Range};
-
 use bitstream_io::BitWrite;
+use std::collections::HashMap;
+use std::{io, ops::Range};
 
 #[cfg(debug_assertions)]
 use crate::common::assert_precision_sufficient;
@@ -116,8 +116,15 @@ where
     ///
     /// This method can fail if the underlying [`BitWrite`] cannot be written
     /// to.
-    pub fn encode(&mut self, symbol: Option<&M::Symbol>, index: usize) -> Result<(), Error<M::ValueError>> {
-        let p = self.model.probability(symbol, index).map_err(Error::ValueError)?;
+    pub fn encode(
+        &mut self,
+        symbol: Option<&M::Symbol>,
+        index: usize,
+    ) -> Result<(), Error<M::ValueError>> {
+        let p = self
+            .model
+            .probability(symbol, index)
+            .map_err(Error::ValueError)?;
         let denominator = self.model.denominator();
         debug_assert!(
             denominator <= self.model.max_denominator(),
@@ -163,6 +170,11 @@ where
     /// Return the alphabet of the model.
     pub fn alphabet(&mut self) -> Vec<M::Symbol> {
         self.model.alphabet()
+    }
+
+    /// Return the alphabet additions of the model.
+    pub fn alphabet_additions(&mut self) -> HashMap<M::Symbol, usize> {
+        self.model.alphabet_additions()
     }
 }
 
