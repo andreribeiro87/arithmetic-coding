@@ -25,7 +25,7 @@ where
 {
     model: M,
     state: State<M::B, R>,
-    idx_counter: usize,
+    idx_counter: u32,
 }
 
 impl<M, R> Decoder<M, R>
