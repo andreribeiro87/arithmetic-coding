@@ -89,7 +89,7 @@ pub trait Model {
     fn probability(
         &mut self,
         symbol: Option<&Self::Symbol>,
-        index: usize,
+        index: u32,
     ) -> Result<Range<Self::B>, Self::ValueError>;
 
     /// The denominator for probability ranges. See [`Model::probability`].
@@ -132,8 +132,8 @@ pub trait Model {
     fn alphabet(&mut self) -> Vec<Self::Symbol>;
 
     /// Add a symbol to the alphabet of the model.
-    fn add_symbol_to_alphabet(&mut self, symbol: Self::Symbol, index: usize);
+    fn add_symbol_to_alphabet(&mut self, symbol: Self::Symbol, index: u32);
 
     /// Return the alphabet additions of the model.
-    fn alphabet_additions(&mut self) -> HashMap< usize, Self::Symbol>;
+    fn alphabet_additions(&mut self) -> HashMap<u32, Self::Symbol>;
 }

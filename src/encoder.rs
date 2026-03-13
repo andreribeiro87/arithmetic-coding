@@ -98,7 +98,7 @@ where
         symbols: impl IntoIterator<Item = M::Symbol>,
     ) -> Result<(), Error<M::ValueError>> {
         for (index, symbol) in symbols.into_iter().enumerate() {
-            self.encode(Some(&symbol), index)?;
+            self.encode(Some(&symbol), index as u32)?;
         }
         // self.encode(None)?;
         self.flush()?;
@@ -119,7 +119,7 @@ where
     pub fn encode(
         &mut self,
         symbol: Option<&M::Symbol>,
-        index: usize,
+        index: u32,
     ) -> Result<(), Error<M::ValueError>> {
         let p = self
             .model
@@ -173,7 +173,7 @@ where
     }
 
     /// Return the alphabet additions of the model.
-    pub fn alphabet_additions(&mut self) -> HashMap< usize, M::Symbol> {
+    pub fn alphabet_additions(&mut self) -> HashMap<u32, M::Symbol> {
         self.model.alphabet_additions()
     }
 }
