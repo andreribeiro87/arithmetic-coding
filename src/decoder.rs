@@ -126,7 +126,7 @@ where
             .expect("this should not be able to fail. Check the implementation of the model.");
 
         self.state.scale(p, denominator)?;
-        self.model.update(symbol.as_ref());
+        self.model.update(symbol.as_ref(), self.idx_counter);
 
         self.idx_counter += 1;
 

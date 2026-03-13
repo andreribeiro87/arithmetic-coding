@@ -126,7 +126,7 @@ pub trait Model {
     /// This method only needs to be implemented for 'adaptive' models. It's a
     /// no-op by default.
     #[inline]
-    fn update(&mut self, _symbol: Option<&Self::Symbol>) {}
+    fn update(&mut self, _symbol: Option<&Self::Symbol>, _index: u32) {}
 
     /// Return the alphabet of the model.
     fn alphabet(&mut self) -> Vec<Self::Symbol>;

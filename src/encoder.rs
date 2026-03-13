@@ -132,7 +132,7 @@ where
         );
 
         self.state.scale(p, denominator)?;
-        self.model.update(symbol);
+        self.model.update(symbol, index);
 
         Ok(())
     }
