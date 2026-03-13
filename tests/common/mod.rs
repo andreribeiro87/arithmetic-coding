@@ -17,7 +17,7 @@ where
     M: Model,
 {
     let mut bitwriter = BitWriter::endian(Vec::new(), BigEndian);
-    let encoder = Encoder::new(model, &mut bitwriter);
+    let mut encoder = Encoder::new(model, &mut bitwriter);
 
     encoder.encode_all(input).unwrap();
     bitwriter.byte_align().unwrap();
