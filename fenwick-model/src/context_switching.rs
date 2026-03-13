@@ -68,4 +68,12 @@ impl Model for FenwickModel {
         }
         self.current_context = symbol.map(|x| x + 1).unwrap_or_default();
     }
+
+    fn alphabet(&mut self) -> Vec<usize> {
+        self.contexts.iter().map(|c| c.len()).collect()
+    }
+
+    fn add_symbol_to_alphabet(&mut self, _symbol: usize) {
+        return;
+    }
 }

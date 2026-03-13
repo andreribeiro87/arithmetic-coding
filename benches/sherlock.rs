@@ -51,6 +51,14 @@ impl Model for StringModel {
     fn denominator(&mut self) -> Self::B {
         self.fenwick_model.denominator()
     }
+
+    fn alphabet(&mut self) -> Vec<u8> {
+        (0..255).collect()
+    }
+
+    fn add_symbol_to_alphabet(&mut self, _symbol: u8) {
+        return;
+    }
 }
 
 fn round_trip(input: &[u8]) {

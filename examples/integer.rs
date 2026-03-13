@@ -56,6 +56,14 @@ impl Model for MyModel {
     fn max_denominator(&mut self) -> u32 {
         4
     }
+
+    fn alphabet(&mut self) -> Vec<u8> {
+        vec![1, 2, 3]
+    }
+
+    fn add_symbol_to_alphabet(&mut self, _symbol: u8) {
+        return;
+    }
 }
 
 fn main() {

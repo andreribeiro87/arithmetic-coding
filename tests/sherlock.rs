@@ -40,6 +40,14 @@ impl Model for StringModel {
     fn max_denominator(&mut self) -> Self::B {
         ALPHABET.len() + 1
     }
+
+    fn alphabet(&mut self) -> Vec<char> {
+        ALPHABET.chars().collect()
+    }
+
+    fn add_symbol_to_alphabet(&mut self, _symbol: char) {
+        return;
+    }
 }
 
 #[test]

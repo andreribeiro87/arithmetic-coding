@@ -159,6 +159,11 @@ where
     {
         Encoder::with_state(self.state, model)
     }
+
+    /// Return the alphabet of the model.
+    pub fn alphabet(&mut self) -> Vec<M::Symbol> {
+        self.model.alphabet()
+    }
 }
 
 /// A convenience struct which stores the internal state of an [`Encoder`].

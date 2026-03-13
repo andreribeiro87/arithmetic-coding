@@ -85,4 +85,12 @@ impl Model for FenwickModel {
             self.weights.update(symbol.copied(), 1);
         }
     }
+
+    fn alphabet(&mut self) -> Vec<usize> {
+        vec![self.weights.len()]
+    }
+
+    fn add_symbol_to_alphabet(&mut self, _symbol: usize) {
+        return;
+    }
 }

@@ -62,6 +62,14 @@ impl Model for StringModel {
         let fenwick_symbol = symbol.map(|c| self.alphabet.iter().position(|x| x == c).unwrap());
         self.fenwick_model.update(fenwick_symbol.as_ref());
     }
+
+    fn alphabet(&mut self) -> Vec<char> {
+        self.alphabet.clone()
+    }
+
+    fn add_symbol_to_alphabet(&mut self, _symbol: char) {
+        return;
+    }
 }
 
 fn main() {

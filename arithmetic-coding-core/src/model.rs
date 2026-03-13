@@ -2,10 +2,6 @@ use std::{error::Error, ops::Range};
 
 use crate::BitStore;
 
-pub mod fixed_length;
-pub mod max_length;
-pub mod one_shot;
-
 /// A [`Model`] is used to calculate the probability of a given symbol occuring
 /// in a sequence. The [`Model`] is used both for encoding and decoding.
 ///
@@ -130,4 +126,10 @@ pub trait Model {
     /// no-op by default.
     #[inline]
     fn update(&mut self, _symbol: Option<&Self::Symbol>) {}
+
+    /// Return the alphabet of the model.
+    fn alphabet(&mut self) -> Vec<Self::Symbol>;
+
+    /// Add a symbol to the alphabet of the model.
+    fn add_symbol_to_alphabet(&mut self, symbol: Self::Symbol);
 }

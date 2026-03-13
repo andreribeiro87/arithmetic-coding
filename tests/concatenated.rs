@@ -42,6 +42,14 @@ mod integer {
         fn max_denominator(&mut self) -> u32 {
             4
         }
+
+        fn alphabet(&mut self) -> Vec<u8> {
+            vec![1, 2, 3]
+        }
+
+        fn add_symbol_to_alphabet(&mut self, _symbol: u8) {
+            return;
+        }
     }
 }
 
@@ -83,6 +91,14 @@ mod symbolic {
 
         fn max_denominator(&mut self) -> u32 {
             4
+        }
+
+        fn alphabet(&mut self) -> Vec<Symbol> {
+            vec![Symbol::A, Symbol::B, Symbol::C]
+        }
+
+        fn add_symbol_to_alphabet(&mut self, _symbol: Symbol) {
+            return;
         }
     }
 }
