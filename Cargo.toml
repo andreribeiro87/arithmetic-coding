@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "arithmetic-coding-core", "fenwick-model"]
+members = [".", "arithmetic-coding-core"]
 
 [workspace.package]
 rust-version = "1.85.0"
@@ -35,13 +35,8 @@ bitstream-io = "4.4.0"
 thiserror = { workspace = true }
 
 [dev-dependencies]
-fenwick-model = { path = "./fenwick-model", version = "0.1.1" }
 criterion = "0.7.0"
 test-case = "3.0.0"
-
-[[bench]]
-name = "sherlock"
-harness = false
 
 [lints]
 workspace = true

@@ -97,8 +97,8 @@ where
         &mut self,
         symbols: impl IntoIterator<Item = M::Symbol>,
     ) -> Result<(), Error<M::ValueError>> {
-        for symbol in symbols {
-            self.encode(Some(&symbol))?;
+        for (index, symbol) in symbols.into_iter().enumerate() {
+            self.encode(Some(&symbol), index)?;
         }
         // self.encode(None)?;
         self.flush()?;
@@ -116,8 +116,8 @@ where
     ///
     /// This method can fail if the underlying [`BitWrite`] cannot be written
     /// to.
-    pub fn encode(&mut self, symbol: Option<&M::Symbol>) -> Result<(), Error<M::ValueError>> {
-        let p = self.model.probability(symbol).map_err(Error::ValueError)?;
+    pub fn encode(&mut self, symbol: Option<&M::Symbol>, index: usize) -> Result<(), Error<M::ValueError>> {
+        let p = self.model.probability(symbol, index).map_err(Error::ValueError)?;
         let denominator = self.model.denominator();
         debug_assert!(
             denominator <= self.model.max_denominator(),

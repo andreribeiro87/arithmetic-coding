@@ -25,6 +25,7 @@ where
 {
     model: M,
     state: State<M::B, R>,
+    idx_counter: usize,
 }
 
 impl<M, R> Decoder<M, R>
@@ -92,7 +93,7 @@ where
         #[cfg(debug_assertions)]
         assert_precision_sufficient::<M>(model.max_denominator(), state.state.precision);
 
-        Self { model, state }
+        Self { model, state, idx_counter: 0 }
     }
 
     /// Return an iterator over the decoded symbols.
@@ -121,11 +122,13 @@ where
 
         let p = self
             .model
-            .probability(symbol.as_ref())
+            .probability(symbol.as_ref(), self.idx_counter)
             .expect("this should not be able to fail. Check the implementation of the model.");
 
         self.state.scale(p, denominator)?;
         self.model.update(symbol.as_ref());
+
+        self.idx_counter += 1;
 
         Ok(symbol)
     }

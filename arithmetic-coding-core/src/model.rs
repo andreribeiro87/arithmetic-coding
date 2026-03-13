@@ -89,6 +89,7 @@ pub trait Model {
     fn probability(
         &mut self,
         symbol: Option<&Self::Symbol>,
+        index: usize,
     ) -> Result<Range<Self::B>, Self::ValueError>;
 
     /// The denominator for probability ranges. See [`Model::probability`].
